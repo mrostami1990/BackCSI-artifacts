@@ -12,7 +12,7 @@ backcsi_artifacts/
 ├── src/backcsi.cpp
 ├── src/main.cpp
 ├── tools/prepare_nexmon_csv.py
-└── traces/
+└── traces/ (In all these traces, the TX and RX devices are 10 meter apart within a large conference room)
     └── TagToTX_2m_BackscatterOFF.csv ; Tag 2 meters away from TX device -- Tag fully silent
     └── TagToTX_2m_BackscatterON_2ary.csv ; Tag 2 meters away from TX device -- Tag backscattering 2-ary symbols every once two Wi-Fi packets
     └── TagToTX_2m_BackscatterON_4ay.csv ; Tag 2 meters away from TX device -- Tag backscattering 4-ary symbols every once two Wi-Fi packets
