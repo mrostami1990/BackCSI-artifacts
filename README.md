@@ -13,7 +13,10 @@ backcsi_artifacts/
 ├── src/main.cpp
 ├── tools/prepare_nexmon_csv.py
 └── traces/
-    └── mcs0.csv             # one example trace; add other Nexmon CSVs here
+    └── TagToTX_2m_BackscatterOFF.csv ; Tag 2 meters away from TX device -- Tag fully silent
+    └── TagToTX_2m_BackscatterON_2ary.csv ; Tag 2 meters away from TX device -- Tag backscattering 2-ary symbols every once two Wi-Fi packets
+    └── TagToTX_2m_BackscatterON_4ay.csv ; Tag 2 meters away from TX device -- Tag backscattering 4-ary symbols every once two Wi-Fi packets
+
 ```
 
 Run the commands below **from the extracted `backcsi_artifacts` directory**. The program does not require Python packages, a Wi-Fi interface, or Nexmon to process saved Nexmon CSV traces; Python is used only to convert each per-packet Nexmon trace.
