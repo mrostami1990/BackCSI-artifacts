@@ -44,7 +44,7 @@ cmake --build build -j
 python3 tools/prepare_nexmon_csv.py traces/TagToTX_2m_BackscatterOFF.csv TagToTX_2m_BackscatterOFF_pairs.csv
 ```
 
-**3. Run cancellation only** (no demodulation):
+**3. Run cancellation only** (on *_BackscatterOFF_pairs.csv traces only):
 
 ```bash
 ./build/backcsi_cli cancel TagToTX_2m_BackscatterOFF_pairs.csv --summaryTagToTX_2m_BackscatterOFF_cancellation_summary.txt > TagToTX_2m_BackscatterOFF_cancellation.csv
@@ -82,7 +82,7 @@ With Visual Studio 2022, replace the generator with `"Visual Studio 17 2022"`.
 python .\tools\prepare_nexmon_csv.py .\traces\TagToTX_2m_BackscatterOFF.csv .\TagToTX_2m_BackscatterOFF_pairs.csv
 ```
 
-**3. Run cancellation only** (no demodulation):
+**3. Run cancellation only** (on *_BackscatterOFF_pairs.csv traces only):
 
 ```powershell
 .\build\Release\backcsi_cli.exe cancel .\TagToTX_2m_BackscatterOFF_pairs.csv --summary .\TagToTX_2m_BackscatterOFF_cancellation_summary.txt > .\TagToTX_2m_BackscatterOFF_cancellation.csv
