@@ -1,6 +1,6 @@
 # BackCSI C++ receiver
 
-Minimal C++17 receiver with pairwise CSI cancellation (conjugate-distortion compensation and shrinking-grid search) and optional duty-cycle residual demodulation (2-, 4-, 8-, or 16-ary). A Nexmon CSV preprocessor and an example static, **unmodulated** trace (`traces/mcs0.csv`) are included. The workflow evaluates **one input trace at a time**: choose any compatible CSV in `traces/`, preprocess it into CSI pairs, and run cancellation or decoding. Use `cancel` rather than `decode` for unmodulated traces; use `decode` only when the data CSI packets contain backscatter symbols.
+Minimal C++17 receiver with pairwise CSI cancellation (conjugate-distortion compensation and shrinking-grid search) and optional duty-cycle residual demodulation (2-, 4-, 8-, or 16-ary). A Nexmon CSV preprocessor and example static, **unmodulated** (BackscatterOFF) and backscatter-modulated (BackscatterON) traces (`traces/.csv`) are included. The workflow evaluates **one input trace at a time**: choose any compatible CSV in `traces/`, preprocess it into CSI pairs, and run cancellation or decoding. Use `cancel` rather than `decode` for unmodulated traces; use `decode` only when the data CSI packets contain backscatter symbols.
 
 ## Package layout
 
@@ -38,19 +38,19 @@ cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j
 ```
 
-**2. Preprocess one trace** (here `mcs0.csv`; replace the basename for any other CSV in `traces/`):
+**2. Preprocess one trace** (here `TagToTX_2m_BackscatterOFF.csv`; replace the basename for any other CSV in `traces/`):
 
 ```bash
-python3 tools/prepare_nexmon_csv.py traces/mcs0.csv mcs0_pairs.csv
+python3 tools/prepare_nexmon_csv.py traces/TagToTX_2m_BackscatterOFF.csv TagToTX_2m_BackscatterOFF_pairs.csv
 ```
 
 **3. Run cancellation only** (no demodulation):
 
 ```bash
-./build/backcsi_cli cancel mcs0_pairs.csv --summary mcs0_cancellation_summary.txt > mcs0_cancellation.csv
+./build/backcsi_cli cancel TagToTX_2m_BackscatterOFF_pairs.csv --summaryTagToTX_2m_BackscatterOFF_cancellation_summary.txt > TagToTX_2m_BackscatterOFF_cancellation.csv
 ```
 
-The terminal prints the preprocessing counts; `mcs0_cancellation.csv` contains one cancellation measurement per CSI pair. `mcs0_cancellation_summary.txt` contains statistics for that **same trace only**. Use distinct names for each trace so results do not overwrite one another.
+The terminal prints the preprocessing counts; `TagToTX_2m_BackscatterOFF_cancellation.csv` contains one cancellation measurement per CSI pair. `TagToTX_2m_BackscatterOFF_cancellation_summary.txt` contains statistics for that **same trace only**. Use distinct names for each trace so results do not overwrite one another.
 
 ## Windows (PowerShell)
 
@@ -76,19 +76,19 @@ cmake --build build --config Release
 
 With Visual Studio 2022, replace the generator with `"Visual Studio 17 2022"`.
 
-**2. Preprocess one trace** (replace `mcs0` with the filename of another trace in `traces/`):
+**2. Preprocess one trace** (replace `TagToTX_2m_BackscatterOFF` with the filename of another trace in `traces/`):
 
 ```powershell
-python .\tools\prepare_nexmon_csv.py .\traces\mcs0.csv .\mcs0_pairs.csv
+python .\tools\prepare_nexmon_csv.py .\traces\TagToTX_2m_BackscatterOFF.csv .\TagToTX_2m_BackscatterOFF_pairs.csv
 ```
 
 **3. Run cancellation only** (no demodulation):
 
 ```powershell
-.\build\Release\backcsi_cli.exe cancel .\mcs0_pairs.csv --summary .\mcs0_cancellation_summary.txt > .\mcs0_cancellation.csv
+.\build\Release\backcsi_cli.exe cancel .\TagToTX_2m_BackscatterOFF_pairs.csv --summary .\TagToTX_2m_BackscatterOFF_cancellation_summary.txt > .\TagToTX_2m_BackscatterOFF_cancellation.csv
 ```
 
-The receiver writes `mcs0_cancellation_summary.txt` for this trace in the current directory. Repeat the two commands for another input CSV, changing `mcs0` in **all three filenames** to keep results separate. The path `build\Release\backcsi_cli.exe` is the Visual Studio multi-configuration build output; on Ubuntu's single-configuration build the path is `build/backcsi_cli`.
+The receiver writes `TagToTX_2m_BackscatterOFF_cancellation_summary.txt` for this trace in the current directory. Repeat the two commands for another input CSV, changing `TagToTX_2m_BackscatterOFF` in **all three filenames** to keep results separate. The path `build\Release\backcsi_cli.exe` is the Visual Studio multi-configuration build output; on Ubuntu's single-configuration build the path is `build/backcsi_cli`.
 
 If `cmake` cannot find the C++ compiler, use Developer PowerShell or ensure the Visual Studio C++ workload is installed. If `python` is not recognized, install Python 3 or add it to `PATH`.
 
@@ -168,7 +168,7 @@ The summary is produced as part of `cancel`; no extra Python packages or separat
 
 For backscatter-bearing traces, `decode` produces `decisions.csv` and automatically writes `decoding_summary.txt` (or the path selected with `--summary`).
 
-Cancellation-only example: `backcsi_cli cancel mcs0_pairs.csv --iterations 100 --summary mcs0_cancellation_summary.txt`. Optional decoder flags: `--order 2|4|8|16` (default `4`), `--iterations 100` (cancellation search cap), `--slopes 401` (demodulation phase-slope hypotheses),  `--summary <path>` (default `decoding_summary.txt`),  `--truth <path>` (override expected-symbol indices), and `--no-ber` (disable default periodic-sequence BER). Optional converter flags: `--non-overlapping` (each eligible packet belongs to at most one reference/data pair), `--max-gap-ms 20`, and `--fc all` (by default only `0x88` frames are included; `all` permits other types but still avoids mixing types within one pair). Run `python3 tools/prepare_nexmon_csv.py --help` on Ubuntu or `python .\tools\prepare_nexmon_csv.py --help` on Windows for converter help.
+Cancellation-only example: `backcsi_cli cancel TagToTX_2m_BackscatterOFF_pairs.csv --iterations 100 --summary TagToTX_2m_BackscatterOFF_cancellation_summary.txt`. Optional decoder flags: `--order 2|4|8|16` (default `4`), `--iterations 100` (cancellation search cap), `--slopes 401` (demodulation phase-slope hypotheses),  `--summary <path>` (default `decoding_summary.txt`),  `--truth <path>` (override expected-symbol indices), and `--no-ber` (disable default periodic-sequence BER). Optional converter flags: `--non-overlapping` (each eligible packet belongs to at most one reference/data pair), `--max-gap-ms 20`, and `--fc all` (by default only `0x88` frames are included; `all` permits other types but still avoids mixing types within one pair). Run `python3 tools/prepare_nexmon_csv.py --help` on Ubuntu or `python .\tools\prepare_nexmon_csv.py --help` on Windows for converter help.
 
 **Interpretation:** Each summary characterizes its **own input trace**. The `cancel` command performs conjugate-distortion parameter matching and channel cancellation without running the demodulator.
 
