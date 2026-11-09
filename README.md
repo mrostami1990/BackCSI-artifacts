@@ -184,3 +184,47 @@ const auto result = backcsi::cancel(reference, data);
 const double gain_db = result.gain_db;
 const auto& residual = result.residual;
 ```
+
+## Capturing Nexmon CSI traces (TX / RX primer)
+
+The BackCSI capture testbed operates on **2.4 GHz Wi-Fi channel 1 (2.412 GHz)** with:
+
+- **Wi-Fi transmitter (TX):** an ESP32 transmitting IEEE 802.11 b/g/n Wi-Fi frames.
+- **CSI receiver (RX):** a Raspberry Pi 3B+ with the Broadcom BCM43455C0 Wi-Fi chipset and the `nexmon_csi` firmware patch. Nexmon provides per-packet CSI for matching Wi-Fi frames.
+- **Backscatter tag (for BackscatterON captures):** an Ambiq Apollo4-based controller driving a Skyworks SKY13314-374LF RF switch to vary the tag reflection state. The tag is silent for BackscatterOFF captures.
+
+The hardware description above follows the accompanying **Artifact Appendix: BackCSI**, §1. For installing and enabling Nexmon CSI on the RPi 3B+ with a recent Raspberry Pi OS/kernel, follow [the Nexmon CSI installation discussion](https://github.com/seemoo-lab/nexmon_csi/discussions/395#discussion-9196947) and the [upstream Nexmon CSI usage documentation](https://github.com/seemoo-lab/nexmon_csi). The setup includes installing patched firmware, creating a `makecsiparams` configuration for **channel 1 / 20 MHz**, the TX MAC address and the intended frame-type byte (for example `0x88`), applying it with `nexutil`, and activating the required capture/monitor configuration. The upstream guide also shows how to check for Nexmon CSI UDP packets on destination port **5500** using `tcpdump`. The exact Nexmon installation commands vary by Raspberry Pi OS/kernel version; use the linked guide instead of assuming the older driver-patching workflow applies.
+
+### Capture CSI UDP packets to CSV
+
+`collect_nexmon_udp.py` is a standalone **Python 3 standard-library** logger for the RPi 3B+'s BCM43455C0 Nexmon CSI stream. It listens for Nexmon UDP CSI payloads on port 5500 and writes the same **per-packet CSV column schema** used by the example traces: `ts,srcmac,seq,frag,core,nss,fc,rssi,chanspec,mean_amp,amp_db,re0,im0,...,re63,im63`. The 64 complex CSI bins are recorded as signed integer real/imaginary components. It does not construct CSI pairs; use `tools/prepare_nexmon_csv.py` afterward.
+
+After configuring the RPi's Nexmon CSI firmware, place `collect_nexmon_udp.py` under `tools/` and run it on the device/host that **receives the Nexmon UDP datagrams**:
+
+```bash
+python3 tools/collect_nexmon_udp.py traces/my_capture.csv --fc 0x88
+```
+
+Stop with Ctrl+C, or record a fixed count/duration:
+
+```bash
+python3 tools/collect_nexmon_udp.py traces/my_capture.csv --fc 0x88 --max-packets 1000
+python3 tools/collect_nexmon_udp.py traces/my_capture.csv --fc 0x88 --timeout 30
+```
+
+The following checks whether packets are visible on the RPi's Wi-Fi interface:
+
+```bash
+sudo tcpdump -i wlan0 -n 'udp dst port 5500'
+```
+
+**Metadata limitations:** Nexmon's CSI UDP format does not itself contain a received-signal-strength measurement or the full original frame-control header. Accordingly, this logger leaves the `rssi` field empty and populates `fc` from the `--fc` value **configured in the Nexmon filter**; it is not independently decoded from UDP. `ts` is the host's UDP reception timestamp, **not a hardware/PHY timestamp**. `mean_amp` and `amp_db` are derived from the 51 selected usable CSI bins; these are summary values, not RSSI. The logger targets the **current 0x1111 Nexmon CSI UDP payload** and the 20 MHz BCM43455C0 interleaved int16 I/Q format. Other chipsets, bandwidths, or older Nexmon payload formats require a different decoder. If `tcpdump` sees CSI datagrams but a regular UDP socket receives none, the receiver/driver may expose them only through packet capture; this standalone socket logger does not substitute for a packet-capture/PCAP parser.
+
+Convert a captured CSV to BackCSI input using the existing preprocessor. For a static BackscatterOFF recording, retain default adjacent-packet pairing; for a recording with clean-reference/data alternation, request disjoint pairs:
+
+```bash
+python3 tools/prepare_nexmon_csv.py traces/my_capture.csv my_capture_pairs.csv
+python3 tools/prepare_nexmon_csv.py traces/my_capture.csv my_capture_pairs.csv --non-overlapping
+```
+
+Only use the pairing mode that matches the actual packet roles and capture protocol. In particular, the non-overlapping option cannot detect or repair a dropped reference/data packet by itself.
