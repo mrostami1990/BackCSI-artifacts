@@ -197,7 +197,7 @@ The hardware description above follows the accompanying **Artifact Appendix: Bac
 
 ### Capture CSI UDP packets to CSV
 
-`collect_nexmon_udp.py` is a standalone **Python 3 standard-library** logger for the RPi 3B+'s BCM43455C0 Nexmon CSI stream. It listens for Nexmon UDP CSI payloads on port 5500 and writes the same **per-packet CSV column schema** used by the example traces: `ts,srcmac,seq,frag,core,nss,fc,rssi,chanspec,mean_amp,amp_db,re0,im0,...,re63,im63`. The 64 complex CSI bins are recorded as signed integer real/imaginary components. It does not construct CSI pairs; use `tools/prepare_nexmon_csv.py` afterward.
+`collect_nexmon_udp.py` is a standalone **Python 3 standard-library** logger for the RPi 3B+'s BCM43455C0 Nexmon CSI stream. It listens for Nexmon UDP CSI payloads on port 5500 and writes the same **per-packet CSV column schema** used by the example traces: `ts,srcmac,seq,frag,core,nss,fc,rssi,chanspec,re0,im0,...,re63,im63`. The 64 complex CSI bins are recorded as signed integer real/imaginary components. It does not construct CSI pairs; use `tools/prepare_nexmon_csv.py` afterward.
 
 After configuring the RPi's Nexmon CSI firmware, place `collect_nexmon_udp.py` under `tools/` and run it on the device/host that **receives the Nexmon UDP datagrams**:
 
